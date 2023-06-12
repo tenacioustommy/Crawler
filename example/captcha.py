@@ -1,5 +1,5 @@
 from selenium.webdriver import Chrome
-from chaojiying import Chaojiying_Client
+from example.chaojiying import Chaojiying_Client
 import time
 web=Chrome()
 web.get("https://www.chaojiying.com/user/login/")
