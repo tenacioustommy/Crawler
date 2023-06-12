@@ -30,10 +30,9 @@ else:
 steps=min(int(num),4)
 for i in range(steps):
     # get all things on this page
-    mountainlist=web.find_elements(By.XPATH,'//*[@id="locationform"]/div/div[1]/table/tr')
+    mountainlist=web.find_elements(By.XPATH,'//*[@id="locationform"]/div/div[1]/table/tr[position()>1]')
     flag=False
     # remove header
-    mountainlist=mountainlist[1:]
     for mountain in mountainlist:
         element=mountain.find_element(By.XPATH,'./td[2]/div/div[1]')  
         extratext=mountain.find_element(By.XPATH,'./td[2]/div/div[2]/span').get_attribute("class")   
