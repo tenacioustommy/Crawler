@@ -58,7 +58,6 @@ async def aio_dec(key):
             tasks.append(task)
         await asyncio.wait(tasks)
 def merge_ts():
-    lst=[]
     with open('video.m3u8',mode='r',encoding='utf-8') as f1,\
             open('video.mp4',mode='ab')as f2:            
         for line in f1:
