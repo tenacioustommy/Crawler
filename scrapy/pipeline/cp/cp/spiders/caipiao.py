@@ -11,6 +11,7 @@ class CaipiaoSpider(scrapy.Spider):
     def parse(self, response: TextResponse):
         trs = response.xpath('//*[@id="tdata"]/tr')
         for tr in trs:
+            # class 属性值
             if tr.xpath('./@class').extract_first() == 'tdbck':
                 continue
             red_ball = tr.css('.chartBall01::text').extract()

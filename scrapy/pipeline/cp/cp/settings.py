@@ -65,6 +65,7 @@ LOG_LEVEL = "WARNING"
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     "cp.pipelines.CpPipeline": 300,
+    "cp.pipelines.SQLPipeline": 399,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

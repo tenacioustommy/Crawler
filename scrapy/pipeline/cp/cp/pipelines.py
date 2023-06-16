@@ -32,7 +32,7 @@ class CpPipeline:
 class SQLPipeline:
     def open_spider(self, spider):
         self.conn = pymysql.connect(
-            host="localhost", port=3306, password='hzh475601', database='spider')
+            user='user', host="localhost", port=3306, password='hzh475601', database='spider')
 
     def close_spider(self, spider):
         if self.conn:
@@ -41,8 +41,9 @@ class SQLPipeline:
     def process_item(self, item, spider: Spider):
         try:
             cursor = self.conn.cursor()
-            sql = 'insert into caipiao (qihao,read_ball,blue_ball) values (%s,%s,%s)'
-            cursor.execute(sql, (item['qihao'], '_'.join(item['red_ball']), item['blue_ball']))
+            sql = "insert into caipiao (qihao,red_ball,blue_ball) values (%s,%s,%s)"
+            cursor.execute(sql, (item['qihao'], '_'.join(
+                item['red_ball']), item['blue_ball']))
             self.conn.commit()
         except:
             self.conn.rollback()
