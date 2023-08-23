@@ -4,19 +4,24 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 import time
 import pickle
 import os
 
 clickinternal = 0.2
 login_url = 'https://passport.maoyan.com/login?pagesource=show'
-ID = "272511"
+ID = "273827"
 target_url = f"https://show.maoyan.com/qqw#/ticket-level?id={ID}&modelStyle=0&_blank=true"
 # ！！下面两个都是从头开始的0-based格子数
 expected_time = [0]
 # maoyan这个是反过来的，可以提前在大麦看好然后再反过来
-expected_ticket = [1]
+expected_ticket = [6, 5, 4, 1]
 account = '13816140582'
+# 0：盯着一个抢，1：不停刷多种票类型
+mode = 1
+# mode=1时，每个事件抢几秒？
+grabsec = 3
 
 
 class maoyan:
@@ -139,9 +144,11 @@ class maoyan:
                 self.web.get(target_url)
                 # 选位置
                 if self.choose_ticket():
-                    # 选到了点击确认按钮
-                    self.web.find_element(
-                        By.XPATH, '//*[@id="app"]/div/div/div[3]/div[2]/div[2]').click()
+                    # 选到了点击确认按钮,只要确认存在就一直点
+                    while(self.isElementExist('//*[@id="app"]/div/div/div[3]/div[2]/div[2]')):
+                        self.web.find_element(
+                            By.XPATH, '//*[@id="app"]/div/div/div[3]/div[2]/div[2]').click()
+                        time.sleep(0.3)
                 else:
                     continue
             # 选观演人
@@ -150,13 +157,29 @@ class maoyan:
                 #     (By.XPATH, '//*[@id="dmViewerBlock_DmViewerBlock"]/div[2]/div/div/div[2]/div[2]')))
                 # element.click()
             # 拼命点击
-                wait = WebDriverWait(self.web, 1)
-                confirmbtn = wait.until(EC.element_to_be_clickable((
+
+                wait = WebDriverWait(self.web, 4)
+                confirmbtn = wait.until(EC.visibility_of_element_located((
                     By.XPATH, '//*[@id="loading"]/div[1]/div[2]/div[2]/button')))
-                confirmbtn.click()
-                if self.isElementExist('//*[@id="CYRA_index0"]/div[3]/p/button/span'):
-                    print('success,please pay immediately!!!')
-                    return
+                if mode == 0:
+                    # 拼命抢
+                    while True:
+                        # 代替了click，就不会因为跳出的东西影响，真的妙
+                        confirmbtn.send_keys(Keys.ENTER)
+                        # 点击成功
+                        if self.isElementExist('//*[@id="CYRA_index0"]/div[3]/p/button/span'):
+                            print('success,please pay immediately!!!')
+                            return
+                        time.sleep(0.2)
+                elif mode == 1:
+                    start = time.time()
+                    while time.time() - start < grabsec:
+                        confirmbtn.send_keys(Keys.ENTER)
+                        if self.isElementExist('//*[@id="CYRA_index0"]/div[3]/p/button/span'):
+                            print('success,please pay immediately!!!')
+                            return
+                        time.sleep(0.1)
+
             except:
                 # 有任何问题直接返回
                 pass
@@ -169,5 +192,3 @@ if __name__ == "__main__":
         ticket.get_cookie()             # 没有文件的情况下, 登录一
     ticket.login()
     ticket.rob_ticket()
-
-    time.sleep(30)
