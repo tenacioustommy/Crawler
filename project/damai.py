@@ -4,19 +4,22 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 import time
 import pickle
 import os
 
 clickinternal = 0.2
+account = '13816140582'
+pwd = 'hzh475601'
 login_url = 'https://passport.damai.cn/login?ru=https%3A%2F%2Fwww.damai.cn%2F'
-ID = "733071713999"
+ID = "733134161114"
 target_url = f"https://m.damai.cn/shows/item.html?itemId={ID}&from=def&sqm=dianying.h5.unknown.value&spm=a2o71.project.0.center"
 # ！！下面两个都是从头开始的0-based格子数
 expected_time = [0]
-expected_ticket = [1, 2, 3]
-account = '13816140582'
-pwd = 'hzh475601'
+expected_ticket = [7, 8]
+# num,需要提前填写观演人在猫眼上,只保留本次观演的，其他全部删掉！！
+num = 1
 
 
 class damai:
@@ -24,6 +27,10 @@ class damai:
         self.chrome_options = Options()
         # self.chrome_options.add_argument(
         #     "--headless")  # Run Chrome in headless mode
+        self.chrome_options.add_experimental_option(
+            "excludeSwitches", ["enable-automation"])
+        self.chrome_options.add_experimental_option(
+            'useAutomationExtension', False)
         self.chrome_options.add_argument("--no-sandbox")
         self.chrome_options.add_argument("--disable-dev-shm-usage")
         self.chrome_options.add_argument("--disable-gpu")
@@ -40,7 +47,7 @@ class damai:
         self.chrome_options.add_argument(
             "--disable-features=CrossSiteDocumentBlockingAlways,IsolateOrigins,site-per-process,NetworkService,VizDisplayCompositor")
         self.web = Chrome(options=self.chrome_options)
-        self.web.set_window_size(960, 1920)
+        self.web.set_window_size(720, 1920)
 
     def get_cookie(self):
         self.web.get(login_url)
@@ -86,21 +93,23 @@ class damai:
             return flag
 
     def choose_ticket(self):
-        wait = WebDriverWait(self.web, 1)
+        wait = WebDriverWait(self.web, 3)
         all_tags = wait.until(EC.visibility_of_any_elements_located(
-            (By.CLASS_NAME, 'bui-dm-sku-card-item-box')))
+            (By.CLASS_NAME, 'item-text')))
 
         for eachtime in expected_time:
             expected = all_tags[eachtime]
             # 没合适时间了
-            timeele = expected.find_element(
-                By.CLASS_NAME, 'item-tag-outer')
-            if timeele.text == '无票':
-                continue
-            else:
+            try:
+                timeele = expected.find_element(
+                    By.CLASS_NAME, 'item-tag-outer')
+                if timeele.text == '无票':
+                    continue
+            except:
+                # 点击合适时间
                 wait = WebDriverWait(self.web, 2)
-                wait.until(EC.element_to_be_clickable(timeele))
-                timeele.click()
+                wait.until(EC.element_to_be_clickable(expected))
+                expected.click()
                 for ticket in expected_ticket:
                     expected = all_tags[ticket]
                     try:
@@ -110,8 +119,15 @@ class damai:
                     except:
                         wait = WebDriverWait(self.web, 2)
                         wait.until(EC.element_to_be_clickable(expected))
-                        # time.sleep(0.05)
+                        time.sleep(0.1)
                         expected.click()
+                        # 选人
+                        if num > 1:
+                            wait = WebDriverWait(self.web, 3)
+                            plusbtn = wait.until(EC.element_to_be_clickable(
+                                (By.CLASS_NAME, 'plus-enable')))
+                            for _ in range(num-1):
+                                plusbtn.click()
                         return True
         return False
 
@@ -123,11 +139,7 @@ class damai:
                 wait = WebDriverWait(self.web, 3)
                 buybutton = wait.until(EC.element_to_be_clickable(
                     (By.CLASS_NAME, "buy__button__text")))
-                # if buybutton.text != "立即预订":
-                #     print(buybutton.text)
-                #     continue
-                time.sleep(0.15)
-                print(buybutton.text)
+                time.sleep(0.1)
                 buybutton.click()
                 # 选位置
                 if self.choose_ticket():
@@ -138,19 +150,26 @@ class damai:
                     continue
             # 选观演人
                 wait = WebDriverWait(self.web, 3)
-                element = wait.until(EC.visibility_of_element_located(
-                    (By.XPATH, '//*[@id="dmViewerBlock_DmViewerBlock"]/div[2]/div/div/div[2]/div[2]')))
-                element.click()
+                wait.until(EC.element_to_be_clickable(
+                    (By.CLASS_NAME, 'icondanxuan-weixuan_')))
+                elements = self.web.find_elements(
+                    By.CLASS_NAME, "icondanxuan-weixuan_")
+                for ele in elements:
+                    ele.click()
+
             # 拼命点击
                 wait = WebDriverWait(self.web, 3)
                 confirmbtn = wait.until(EC.element_to_be_clickable((
                     By.XPATH, '//*[@id="dmOrderSubmitBlock_DmOrderSubmitBlock"]/div[2]/div/div[2]/div[3]/div[2]/span')))
-                while 1:
+                while True:
                     confirmbtn.click()
                     if self.isElementExist('//*[@id="dmOrderSubmitBlock_DmOrderSubmitBlock"]/div[2]/div/div[2]/div[3]/div[2]/span') == False:
                         return
-                    # time.sleep(0.1)
+                    time.sleep(0.2)
             except:
+                # 有任何问题直接返回
+                # time.sleep(0.2)
+                pass
                 # 滑块处理
                 # if self.isElementExist('//*[@id="nc_1_n1z"]'):
                 # /html/body/div[6]/iframe
@@ -160,8 +179,6 @@ class damai:
                 #     By.XPATH, '//*[@id="nc_1__scale_text"]/span')
                 # ActionChains(self.web).drag_and_drop_by_offset(
                 #     btn, area.size['width'], area.size["height"]).perform()
-                # 有任何问题直接返回
-                pass
 
 
 if __name__ == "__main__":
