@@ -6,18 +6,21 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 import time
+from datetime import datetime
+from threading import Timer
 import pickle
 import os
 
+starttime = '23:52:00'
 clickinternal = 0.2
 account = '13816140582'
 pwd = 'hzh475601'
 login_url = 'https://passport.damai.cn/login?ru=https%3A%2F%2Fwww.damai.cn%2F'
-ID = "733134161114"
+ID = "734167955425"
 target_url = f"https://m.damai.cn/shows/item.html?itemId={ID}&from=def&sqm=dianying.h5.unknown.value&spm=a2o71.project.0.center"
 # ！！下面两个都是从头开始的0-based格子数
-expected_time = [0]
-expected_ticket = [7, 8]
+expected_time = [0, 1]
+expected_ticket = [2, 3]
 # num,需要提前填写观演人在猫眼上,只保留本次观演的，其他全部删掉！！
 num = 1
 
@@ -31,6 +34,8 @@ class damai:
             "excludeSwitches", ["enable-automation"])
         self.chrome_options.add_experimental_option(
             'useAutomationExtension', False)
+        # self.chrome_options.add_argument(
+        #     'user-agent="Mozilla/5.0 (iPod; U; CPU iPhone OS 2_1 like Mac OS X; ja-jp) AppleWebKit/525.18.1 (KHTML, like Gecko) Version/3.1.1 Mobile/5F137 Safari/525.20"')
         self.chrome_options.add_argument("--no-sandbox")
         self.chrome_options.add_argument("--disable-dev-shm-usage")
         self.chrome_options.add_argument("--disable-gpu")
@@ -93,7 +98,7 @@ class damai:
             return flag
 
     def choose_ticket(self):
-        wait = WebDriverWait(self.web, 3)
+        wait = WebDriverWait(self.web, 2)
         all_tags = wait.until(EC.visibility_of_any_elements_located(
             (By.CLASS_NAME, 'item-text')))
 
@@ -110,6 +115,8 @@ class damai:
                 wait = WebDriverWait(self.web, 2)
                 wait.until(EC.element_to_be_clickable(expected))
                 expected.click()
+                time.sleep(0.2)
+                all_tags = self.web.find_elements(By.CLASS_NAME, 'item-text')
                 for ticket in expected_ticket:
                     expected = all_tags[ticket]
                     try:
@@ -117,9 +124,9 @@ class damai:
                         expected.find_element(
                             By.CLASS_NAME, 'item-tag-outer')
                     except:
-                        wait = WebDriverWait(self.web, 2)
-                        wait.until(EC.element_to_be_clickable(expected))
-                        time.sleep(0.1)
+                        # wait = WebDriverWait(self.web, 2)
+                        # wait.until(EC.element_to_be_clickable(expected))
+                        # time.sleep(0.1)
                         expected.click()
                         # 选人
                         if num > 1:
@@ -136,7 +143,7 @@ class damai:
             try:
                 self.web.get(target_url)
                 # 不管三七二十一直接点
-                wait = WebDriverWait(self.web, 3)
+                wait = WebDriverWait(self.web, 2)
                 buybutton = wait.until(EC.element_to_be_clickable(
                     (By.CLASS_NAME, "buy__button__text")))
                 time.sleep(0.1)
@@ -149,7 +156,7 @@ class damai:
                 else:
                     continue
             # 选观演人
-                wait = WebDriverWait(self.web, 3)
+                wait = WebDriverWait(self.web, 2)
                 wait.until(EC.element_to_be_clickable(
                     (By.CLASS_NAME, 'icondanxuan-weixuan_')))
                 elements = self.web.find_elements(
@@ -158,7 +165,7 @@ class damai:
                     ele.click()
 
             # 拼命点击
-                wait = WebDriverWait(self.web, 3)
+                wait = WebDriverWait(self.web, 2)
                 confirmbtn = wait.until(EC.element_to_be_clickable((
                     By.XPATH, '//*[@id="dmOrderSubmitBlock_DmOrderSubmitBlock"]/div[2]/div/div[2]/div[3]/div[2]/span')))
                 while True:
@@ -187,6 +194,5 @@ if __name__ == "__main__":
     if not os.path.exists(f'damai{account}.pkl'):
         ticket.get_cookie()             # 没有文件的情况下, 登录一
     ticket.login()
+    # while datetime.now().strftime("%H:%M:%S") < starttime:
     ticket.rob_ticket()
-
-    time.sleep(30)

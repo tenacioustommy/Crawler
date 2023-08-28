@@ -10,17 +10,17 @@ import pickle
 import os
 
 clickinternal = 0.2
+account = '13816140582'
 login_url = 'https://passport.maoyan.com/login?pagesource=show'
-ID = "271452"
-# 271452
+ID = "273827"
 target_url = f"https://show.maoyan.com/qqw#/ticket-level?id={ID}&modelStyle=0&_blank=true"
 # ！！从头开始的0-based格子数
-expected_time = [1]
+expected_time = [0]
+available_time = 1
 # maoyan这个是反过来的，可以提前在大麦看好然后再反过来
-expected_ticket = [5, 4]
-account = '13816140582'
+expected_ticket = [6, 1]
 # 0：盯着一个抢，1：不停刷多种票类型
-mode = 0
+mode = 1
 # mode=1时，每个事件抢几秒？
 grabsec = 3
 # num,需要提前填写观演人在猫眼上
@@ -126,11 +126,12 @@ class maoyan:
             #     expected.find_element(By.CLASS_NAME, 'show-tag')
             #     continue
             # except:
-            expected.click()
-            time.sleep(0.2)
-            # 有问题这一段
-            all_tags = wait.until(EC.visibility_of_all_elements_located(
-                (By.CLASS_NAME, 'show-item')))
+            # 猫眼有bug，所以直接点击日期
+            if available_time > 1:
+                expected.click()
+                time.sleep(0.2)
+                all_tags = wait.until(EC.visibility_of_all_elements_located(
+                    (By.CLASS_NAME, 'show-item')))
             for ticket in expected_ticket:
                 expected = all_tags[ticket]
                 try:
@@ -148,7 +149,6 @@ class maoyan:
                             By.XPATH, '//*[@id="app"]/div/div/div[3]/div[1]/div[2]/div/div[3]')
                         for _ in range(num-1):
                             plusbtn.click()
-
                     return True
         return False
 
