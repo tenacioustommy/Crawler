@@ -16,7 +16,7 @@ clickinternal = 0.2
 account = '13816140582'
 pwd = 'hzh475601'
 login_url = 'https://passport.damai.cn/login?ru=https%3A%2F%2Fwww.damai.cn%2F'
-ID = "734167955425"
+ID = "734807675057"
 target_url = f"https://m.damai.cn/shows/item.html?itemId={ID}&from=def&sqm=dianying.h5.unknown.value&spm=a2o71.project.0.center"
 # ！！下面两个都是从头开始的0-based格子数
 expected_time = [0, 1]
@@ -78,6 +78,7 @@ class damai:
     def login(self):
         self.web.get(target_url)
         cookies = pickle.load(open(f'damai{account}.pkl', 'rb'))
+        print(cookies)
         for cookie in cookies:
             cookie_dict = {
                 'domain': '.damai.cn',  # 必须要有的, 否则就是假登录

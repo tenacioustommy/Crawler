@@ -1,5 +1,9 @@
 {
   "dependencies": {
-    "crypto-js": "^4.1.1"
+    "crypto-js": "^4.1.1",
+    "jsdom": "^22.1.0"
+  },
+  "devDependencies": {
+    "canvas": "^2.11.2"
   }
 }
