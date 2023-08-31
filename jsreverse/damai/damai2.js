@@ -278,5 +278,5 @@ function main(token, data) {
   return { sign: (u(p) + u(h) + u(m) + u(v)).toLowerCase(), t: time, requestStart: (time - 1).toString() };
 }
 // console.log(window.sasd);
-// console.log(main("05590ea9c2dcf74fbfb6aa448196edea_1693406475577", "2asdasdcfasdavsdvasd"));
+console.log(main("05590ea9c2dcf74fbfb6aa448196edea_1693406475577", "2asdasdcfasdavsdvasd"));
 // )(a);

@@ -12,13 +12,13 @@ import os
 clickinternal = 0.2
 account = '13816140582'
 login_url = 'https://passport.maoyan.com/login?pagesource=show'
-ID = "273827"
+ID = "273034"
 target_url = f"https://show.maoyan.com/qqw#/ticket-level?id={ID}&modelStyle=0&_blank=true"
 # ！！从头开始的0-based格子数
-expected_time = [0]
+expected_time = [0, 1]
 available_time = 1
 # maoyan这个是反过来的，可以提前在大麦看好然后再反过来
-expected_ticket = [6, 1]
+expected_ticket = [7, 6]
 # 0：盯着一个抢，1：不停刷多种票类型
 mode = 1
 # mode=1时，每个事件抢几秒？
@@ -87,11 +87,13 @@ class maoyan:
         time.sleep(10)
         print('10s内登陆完毕')
         cookies = self.web.get_cookies()
-        pickle.dump(cookies, open(f'maoyan{account}.pkl', "wb"))
+        pickle.dump(cookies, open(
+            f'D:/Computer Science/Python3/Crawler/file/maoyan13816140582.pkl/maoyan{account}.pkl', "wb"))
 
     def login(self):
         self.web.get(target_url)
-        cookies = pickle.load(open(f'maoyan{account}.pkl', 'rb'))
+        cookies = pickle.load(open(
+            f'D:/Computer Science/Python3/Crawler/file/maoyan13816140582.pkl/maoyan{account}.pkl', 'rb'))
         for cookie in cookies:
             if cookie['domain'] != '.maoyan.com':
                 continue
@@ -115,7 +117,7 @@ class maoyan:
             return flag
 
     def choose_ticket(self):
-        wait = WebDriverWait(self.web, 3)
+        wait = WebDriverWait(self.web, 2, 0.1)
         all_tags = wait.until(EC.visibility_of_any_elements_located(
             (By.CLASS_NAME, 'show-item')))
         for eachtime in expected_time:
@@ -205,7 +207,7 @@ class maoyan:
 if __name__ == "__main__":
     ticket = maoyan()
     # 创建文件夹, 文件是否存在
-    if not os.path.exists(f'maoyan{account}.pkl'):
+    if not os.path.exists(f'D:/Computer Science/Python3/Crawler/file/maoyan13816140582.pkl/maoyan{account}.pkl'):
         ticket.get_cookie()             # 没有文件的情况下, 登录一
     ticket.login()
     ticket.rob_ticket()
