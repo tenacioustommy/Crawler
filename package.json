@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "crypto-js": "^4.1.1",
-    "jsdom": "^22.1.0"
+    "jsdom": "^22.1.0",
+    "vm2": "^3.9.19"
   },
   "devDependencies": {
     "canvas": "^2.11.2"

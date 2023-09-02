@@ -5,6 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "JS without environment",
+            "program": "${file}",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "node",
+            "runtimeExecutable": "node-inspect"
+        },
+        {
             "name": "Chrome Launch", //运行html文件，用谷歌浏览器打开
             "type": "chrome",
             "request": "launch",
