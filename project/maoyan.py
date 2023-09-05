@@ -9,16 +9,34 @@ import time
 import pickle
 import os
 
+# detectList = ['webdriver', '__driver_evaluate', '__webdriver_evaluate',
+#               '__selenium_evaluate', '__fxdriver_evaluate', '__driver_unwrapped',
+#               '__webdriver_unwrapped', '__selenium_unwrapped', '__fxdriver_unwrapped',
+#               '_Selenium_IDE_Recorder', '_selenium', 'calledSelenium',
+#               '_WEBDRIVER_ELEM_CACHE', 'ChromeDriverw', 'driver-evaluate',
+#               'webdriver-evaluate', 'selenium-evaluate', 'webdriverCommand',
+#               'webdriver-evaluate-response', '__webdriverFunc', '__webdriver_script_fn',
+#               '__$webdriverAsyncExecutor', '__lastWatirAlert', '__lastWatirConfirm',
+#               '__lastWatirPrompt', '$chrome_asyncScriptInfo', '$cdc_asdjflasutopfhvcZLmcfl_']
+
+
+# def response(flow):
+#     if '.js' in flow.request.url:
+#         for key in detectList:
+#             flow.response.text = flow.response.text.replace(
+#                 '"{}"'.format(key), '"NO-SUCH-ATTR"')
+
+
 clickinternal = 0.2
 account = '13816140582'
 login_url = 'https://passport.maoyan.com/login?pagesource=show'
-ID = "273034"
+ID = "274070"
 target_url = f"https://show.maoyan.com/qqw#/ticket-level?id={ID}&modelStyle=0&_blank=true"
 # ！！从头开始的0-based格子数
-expected_time = [0, 1]
+expected_time = [0]
 available_time = 1
 # maoyan这个是反过来的，可以提前在大麦看好然后再反过来
-expected_ticket = [7, 6]
+expected_ticket = [6, 5, 4]
 # 0：盯着一个抢，1：不停刷多种票类型
 mode = 1
 # mode=1时，每个事件抢几秒？
@@ -34,8 +52,10 @@ class maoyan:
         # self.chrome_options.add_argument(
         #     "--headless")  # Run Chrome in headless mode
         self.chrome_options.accept_insecure_certs = True
+        # self.chrome_options.add_experimental_option(
+        #     "debuggerAddress", "127.0.0.1:9222")
         # self.chrome_options.add_argument(
-        #     '--proxy-server=http://127.0.0.1:9090')
+        #     '--proxy-server=http://127.0.0.1:8080')
         self.chrome_options.add_experimental_option(
             "excludeSwitches", ["enable-automation"])
         self.chrome_options.add_experimental_option(
@@ -46,25 +66,13 @@ class maoyan:
         self.chrome_options.add_argument("--disable-dev-shm-usage")
         self.chrome_options.add_argument("--disable-gpu")
         self.chrome_options.add_argument("--disable-extensions")
+        self.chrome_options.add_argument("--disable-infobars")
+        self.chrome_options.add_argument("--disable-blink-features")
         self.chrome_options.add_argument(
             "--disable-blink-features=AutomationControlled")
         self.chrome_options.add_argument(
-            "--disable-blink-features=AutomationControlledInHeadlessMode")
-        self.chrome_options.add_argument("--disable-logging")
-        self.chrome_options.add_argument("--disable-infobars")
-        self.chrome_options.add_argument("--disable-notifications")
-        self.chrome_options.add_argument("--disable-popup-blocking")
-        self.chrome_options.add_argument("--disable-web-security")
-        self.chrome_options.add_argument(
             "--disable-features=CrossSiteDocumentBlockingAlways,IsolateOrigins,site-per-process,NetworkService,VizDisplayCompositor")
         self.web = Chrome(options=self.chrome_options)
-        # self.web.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
-        #     "source": """
-        #     Object.defineProperty(navigator, 'webdriver', {
-        #     get: () => undefined
-        #     })
-        # """
-        # })
         with open('D:\Computer Science\Python3\Crawler\project\stealth.min.js') as f:
             js = f.read()
         self.web.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
@@ -84,16 +92,17 @@ class maoyan:
         time.sleep(1)
         code = self.web.find_element(By.XPATH, '//*[@id="sendCodeBtnText"]')
         code.click()
-        time.sleep(10)
-        print('10s内登陆完毕')
+        wait = WebDriverWait(self.web, 60)
+        wait.until(EC.invisibility_of_element_located(
+            (By.CLASS_NAME, "iLoginComp-login-btn-wrapper")))
         cookies = self.web.get_cookies()
         pickle.dump(cookies, open(
-            f'D:/Computer Science/Python3/Crawler/file/maoyan13816140582.pkl/maoyan{account}.pkl', "wb"))
+            f'D:/Computer Science/Python3/Crawler/file/maoyan{account}.pkl', "wb"))
 
     def login(self):
         self.web.get(target_url)
         cookies = pickle.load(open(
-            f'D:/Computer Science/Python3/Crawler/file/maoyan13816140582.pkl/maoyan{account}.pkl', 'rb'))
+            f'D:/Computer Science/Python3/Crawler/file/maoyan{account}.pkl', 'rb'))
         for cookie in cookies:
             if cookie['domain'] != '.maoyan.com':
                 continue
@@ -117,8 +126,8 @@ class maoyan:
             return flag
 
     def choose_ticket(self):
-        wait = WebDriverWait(self.web, 2, 0.1)
-        all_tags = wait.until(EC.visibility_of_any_elements_located(
+        wait = WebDriverWait(self.web, 3, 0.1)
+        all_tags = wait.until(EC.visibility_of_all_elements_located(
             (By.CLASS_NAME, 'show-item')))
         for eachtime in expected_time:
             expected = all_tags[eachtime]
@@ -158,14 +167,17 @@ class maoyan:
         while True:
             try:
                 self.web.get(target_url)
+                time.sleep(0.2)
                 # 选位置
                 if self.choose_ticket():
+                    time.sleep(0.1)
                     # 选到了点击确认按钮,只要确认存在就一直点
                     while(self.isElementExist('//*[@id="app"]/div/div/div[3]/div[2]/div[2]')):
                         self.web.find_element(
                             By.XPATH, '//*[@id="app"]/div/div/div[3]/div[2]/div[2]').click()
                         time.sleep(0.3)
                 else:
+                    time.sleep(0.2)
                     continue
                 # 选观演人
                 if num > 1:
@@ -201,13 +213,14 @@ class maoyan:
                         time.sleep(0.1)
             except:
                 # 有任何问题直接返回
+                time.sleep(0.2)
                 pass
 
 
 if __name__ == "__main__":
     ticket = maoyan()
     # 创建文件夹, 文件是否存在
-    if not os.path.exists(f'D:/Computer Science/Python3/Crawler/file/maoyan13816140582.pkl/maoyan{account}.pkl'):
+    if not os.path.exists(f'D:/Computer Science/Python3/Crawler/file/maoyan{account}.pkl'):
         ticket.get_cookie()             # 没有文件的情况下, 登录一
     ticket.login()
     ticket.rob_ticket()

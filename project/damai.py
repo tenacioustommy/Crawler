@@ -6,8 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 import time
-from datetime import datetime
-from threading import Timer
+import datetime
 import pickle
 import os
 
@@ -15,12 +14,15 @@ clickinternal = 0.2
 account = '13816140582'
 pwd = 'hzh475601'
 login_url = 'https://passport.damai.cn/login?ru=https%3A%2F%2Fwww.damai.cn%2F'
-# ID = "734807675057"
-ID = '733071713999'
+# ID = '735932754555'
+# targetime = datetime.time(hour=17, minute=16, second=59, microsecond=0)
+ID = "734807675057"
+targetime = datetime.time(hour=17, minute=17, second=59, microsecond=0)
 target_url = f"https://m.damai.cn/shows/item.html?itemId={ID}&from=def&sqm=dianying.h5.unknown.value&spm=a2o71.project.0.center"
+
 # ！！下面两个都是从头开始的0-based格子数
 expected_time = [0, 1]
-expected_ticket = [2]
+expected_ticket = [0, 1]
 # num,需要提前填写观演人在猫眼上,只保留本次观演的，其他全部删掉！！
 num = 1
 
@@ -28,8 +30,7 @@ num = 1
 class damai:
     def __init__(self):
         self.chrome_options = Options()
-        # self.chrome_options.add_argument(
-        #     "--headless")  # Run Chrome in headless mode
+        # self.chrome_options.add_argument("--headless")
         self.chrome_options.add_experimental_option(
             "excludeSwitches", ["enable-automation"])
         self.chrome_options.add_experimental_option(
@@ -53,6 +54,7 @@ class damai:
             "--disable-features=CrossSiteDocumentBlockingAlways,IsolateOrigins,site-per-process,NetworkService,VizDisplayCompositor")
         self.web = Chrome(options=self.chrome_options)
         self.web.set_window_size(720, 1920)
+        # self.first = True
 
     def get_cookie(self):
         self.web.get(login_url)
@@ -73,11 +75,13 @@ class damai:
             By.XPATH, '//*[@id="login-form"]/div[4]/button')
         login.click()
         cookies = self.web.get_cookies()
-        pickle.dump(cookies, open(f'./file/damai{account}.pkl', "wb"))
+        pickle.dump(cookies, open(
+            f'D:\\Computer Science\\Python3\\Crawler\\file/damai{account}.pkl', "wb"))
 
     def login(self):
         self.web.get(target_url)
-        cookies = pickle.load(open(f'./file/damai{account}.pkl', 'rb'))
+        cookies = pickle.load(
+            open(f'D:\\Computer Science\\Python3\\Crawler\\file/damai{account}.pkl', 'rb'))
         # print(cookies)
         for cookie in cookies:
             cookie_dict = {
@@ -145,19 +149,37 @@ class damai:
         while True:
             try:
                 self.web.get(target_url)
+                now = datetime.datetime.now().time()
+                flag = True
+                while(now < targetime):
+                    if flag:
+                        flag = False
+                        print(account, now, "准备就绪")
+                    # 实际sleep了0.015
+                    time.sleep(0.01)
+                    now = datetime.datetime.now().time()
+                self.web.get(target_url)
                 # 不管三七二十一直接点
                 wait = WebDriverWait(self.web,  1, 0.1)
                 buybutton = wait.until(EC.element_to_be_clickable(
                     (By.CLASS_NAME, "buy__button__text")))
                 time.sleep(0.1)
                 buybutton.click()
+                # 不是第一次抢
                 # 选位置
                 if self.choose_ticket():
                     # 选到了点击确认按钮
                     self.web.find_element(
                         By.XPATH, '/html/body/div[6]/div[2]/div/div/div/div/div[4]/div[2]/div[2]').click()
                 else:
+                    time.sleep(0.2)
                     continue
+                # else:
+                #     # 刚开票提前选好座位直接点击确认
+                #     self.first = False
+                #     self.web.find_element(
+                #         By.XPATH, '/html/body/div[6]/div[2]/div/div/div/div/div[4]/div[2]/div[2]').click()
+
             # 选观演人
                 wait = WebDriverWait(self.web,  2, 0.1)
                 wait.until(EC.element_to_be_clickable(
@@ -175,10 +197,10 @@ class damai:
                     confirmbtn.click()
                     if self.isElementExist('//*[@id="dmOrderSubmitBlock_DmOrderSubmitBlock"]/div[2]/div/div[2]/div[3]/div[2]/span') == False:
                         return
-                    time.sleep(0.2)
+                    time.sleep(0.3)
             except:
                 # 有任何问题直接返回
-                # time.sleep(0.2)
+                time.sleep(0.2)
                 pass
                 # 滑块处理
                 # if self.isElementExist('//*[@id="nc_1_n1z"]'):
@@ -194,7 +216,7 @@ class damai:
 if __name__ == "__main__":
     ticket = damai()
     # 创建文件夹, 文件是否存在
-    if not os.path.exists(f'./file/damai{account}.pkl'):
+    if not os.path.exists(f'D:\\Computer Science\\Python3\\Crawler\\file/damai{account}.pkl'):
         ticket.get_cookie()             # 没有文件的情况下, 登录一
     ticket.login()
     # while datetime.now().strftime("%H:%M:%S") < starttime:
