@@ -62,8 +62,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <meta name="Copyright" content="zfsoft" />	
-<link rel="icon" href="/logo/favicon.ico?t=1694495483263" type="image/x-icon" />
-<link rel="shortcut icon" href="/logo/favicon.ico?t=1694495483263" type="image/x-icon" />
+<link rel="icon" href="/logo/favicon.ico?t=1694516426277" type="image/x-icon" />
+<link rel="shortcut icon" href="/logo/favicon.ico?t=1694516426277" type="image/x-icon" />
 <style type="text/css">	
 	.active{font-weight: bolder;}
 	#navbar-tabs li{ margin-top: 2px;}
@@ -212,7 +212,7 @@ http://blog.csdn.net/remote_roamer/article/details/14105999
 <input type="hidden" id="kqhjs" name="kqhjs" value="0" />
 <input type="hidden" id="shyjsfbt" name="shyjsfbt" value="0" />
 <input type="hidden" id="localeKey" name="localeKey" value="zh_CN" />
-<input type="hidden" id="csrftoken" name="csrftoken" value="76106d11-2339-4b44-b1cc-b13150641560,76106d1123394b44b1ccb13150641560"/>
+<input type="hidden" id="csrftoken" name="csrftoken" value="c31f10db-289c-4755-b482-1c320f4511df,c31f10db289c4755b4821c320f4511df"/>
 <input type="hidden" id="cdTsxx" name="cdTsxx" value="-zfsplit-" />
 <input type="hidden" id="wjylSfkf" name="wjylSfkf" value="0" >
 <input type="hidden" id="dingdingbj" name="dingdingbj" value="" />
@@ -333,8 +333,8 @@ http://blog.csdn.net/remote_roamer/article/details/14105999
 		<input type="hidden" name="jzxkf" id="jzxkf" value="0"/>
 		<input type="hidden" name="xkzgmc" id="xkzgmc" value="20"/>
 		<input type="hidden" name="xkzgxf" id="xkzgxf" value="45"/>
-		<input type="hidden" name="zkcs" id="zkcs" value="12"/>
-		<input type="hidden" name="zxfs" id="zxfs" value="27.5"/>
+		<input type="hidden" name="zkcs" id="zkcs" value="10"/>
+		<input type="hidden" name="zxfs" id="zxfs" value="23.5"/>
 		<input type="hidden" name="bdzcbj" id="bdzcbj" value="2"/>
 		<input type="hidden" name="xkxnm" id="xkxnm" value="2023"/>
 		<input type="hidden" name="xkxqm" id="xkxqm" value="3"/>

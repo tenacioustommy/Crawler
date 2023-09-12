@@ -17,7 +17,7 @@ account = 'tommyhuang'
 pwd = 'hzh475601'
 login_url = 'https://i.sjtu.edu.cn/xtgl/login_slogin.html'
 # 'Robonly' 'Quitandrob'
-mode = 'Quitandrob'
+mode = 'Robonly'
 
 
 class Course:
@@ -230,7 +230,8 @@ class Course:
             'tykczgxdcs': self.data['tykczgxdcs'],
             'xkxnm': '2023',
             'xkxqm': '3',
-            'kklxdm': '10',
+            # 06 10来回变
+            'kklxdm': '06',
             'bbhzxjxb': '0',
             'rlkz': '0',
             'xkzgbj': '0',
@@ -306,7 +307,7 @@ class Course:
             'xkxqm': '3',
             'xkxskcgskg': self.data['xkxskcgskg'],
             'rlkz': '0',
-            'kklxdm': '10',
+            'kklxdm': '06',
             'kch_id': self.data['kch_id'],
             'jxbzcxskg': '0',
             'xkkz_id': self.data['xkkz_id'],
@@ -467,8 +468,8 @@ class Course:
 
 if __name__ == "__main__":
     # 有括号记得加转义字符
-    giveupcourse = Course('通识课', '(2023-2024-1)-ART1005-01')
-    course = Course('通识课', '(2023-2024-1)-MU904-02')
+    course = Course('板块课\(体育\（3\）\)', '(2023-2024-1)-PE003C01-24')
+    giveupcourse = Course('通识课', '(2023-2024-1)-MU904-02')
     # 直接抢选
     if mode == 'Robonly':
         course.get_course_info()
@@ -487,5 +488,5 @@ if __name__ == "__main__":
         giveupcourse.giveup_certain_class()
         course.choose_certain_class()
     elif mode == 'Quitonly':
-        giveupcourse.get_course_info()
-        giveupcourse.giveup_certain_class()
+        course.get_course_info()
+        course.giveup_certain_class()
