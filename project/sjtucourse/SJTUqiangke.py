@@ -1,19 +1,29 @@
 import requests
 from lxml import etree
 import re
+import os
+import time
+import pickle
+from selenium.webdriver import Chrome
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from multiprocessing import Process
 # 目前只能用于选一个指定教学班，模式有1：直接抢，2：退同类型抢课
+# 刷新间隔
+interval = 5
+account = 'tommyhuang'
+pwd = 'hzh475601'
+login_url = 'https://i.sjtu.edu.cn/xtgl/login_slogin.html'
+# 'Robonly' 'Quitandrob'
+mode = 'Quitandrob'
 
 
 class Course:
     # 提供选课的类别，eg：板块课(体育（3）)
     # 提供教学班名字，eg:(2023-2024-1)-PE003C30-01
     def __init__(self, catagory, jxb_name) -> None:
-
-        self.jxb_name = jxb_name
-        pattern = re.compile(r'\(.*?\)-(?P<course_str>.*?)-.*?')
-        res = re.search(pattern, jxb_name)
-        self.course_str = res.group('course_str')
-        self.catagory = catagory
         self.cookies = {
             'Qs_lvt_374225': '1694264203',
             '_ga': 'GA1.3.379699225.1694264220',
@@ -21,14 +31,68 @@ class Course:
             'Qs_pv_374225': '2438372775276204500%2C2039259406870655200%2C441375863758378500%2C1933007585373923300',
             'PPA_CI': 'ebf356b14b7cd4b5c1c5599c34e43075',
             # 很重要，也是会过期的
-            'kc@i.sjtu.edu.cn': 'ffffffff097f1c2845525d5f4f58455e445a4a423660',
+            'kc@i.sjtu.edu.cn': '',
             # 获取sessionid即可
-            'JSESSIONID': '7D3F311E581BCCDE4404C1CF37997C8B',
+            'JSESSIONID': '',
         }
+        self.login()
+        self.jxb_name = jxb_name
+        pattern = re.compile(r'\(.*?\)-(?P<course_str>.*?)-.*?')
+        res = re.search(pattern, jxb_name)
+        self.course_str = res.group('course_str')
+        self.catagory = catagory
         self.params = {
             'gnmkdm': 'N253512',
         }
         self.data = {}
+        self.get_basic_info()
+
+    def login(self):
+        if not os.path.exists(f'D:\\Computer Science\\Python3\\Crawler\\file\\jaccount-{account}.pkl'):
+            options = Options()
+            options.add_experimental_option(
+                "excludeSwitches", ["enable-automation"])
+            options.add_experimental_option(
+                'useAutomationExtension', False)
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--disable-gpu")
+            options.add_argument("--disable-extensions")
+            options.add_argument(
+                "--disable-blink-features=AutomationControlled")
+            options.add_argument(
+                "--disable-blink-features=AutomationControlledInHeadlessMode")
+            options.add_argument("--disable-logging")
+            options.add_argument("--disable-infobars")
+            options.add_argument("--disable-notifications")
+            options.add_argument("--disable-popup-blocking")
+            options.add_argument("--disable-web-security")
+            options.add_argument(
+                "--disable-features=CrossSiteDocumentBlockingAlways,IsolateOrigins,site-per-process,NetworkService,VizDisplayCompositor")
+            # options.add_argument(
+            #     "--user-data-dir="+r'C:\\Users\\Epiphany\\AppData\\Local\\Google\\Chrome\\User Data')
+            web = Chrome(options=options)
+            web.get(login_url)
+            web.find_element(By.ID, 'authJwglxtLoginURL').click()
+            # 有cros问题，用不了
+            # with open("D:\\Computer Science\\Python3\\Crawler\\project\\sjtucourse\\captcha.js", "r", encoding='utf-8') as f:
+            #     js_content = f.read()
+            # web.execute_script(js_content)
+            web.find_element(By.ID, 'user').send_keys(account)
+            web.find_element(By.ID, 'pass').send_keys(pwd)
+            print('input captcha')
+            wait = WebDriverWait(web, 90)
+            wait.until(EC.invisibility_of_element_located(
+                (By.XPATH, '//*[@id="submit-button"]')))
+            time.sleep(1)
+            cookies = web.get_cookies()
+            for cookie in cookies:
+                self.cookies[cookie['name']] = cookie['value']
+            pickle.dump(self.cookies, open(
+                f'D:\\Computer Science\\Python3\\Crawler\\file\\jaccount-{account}.pkl', "wb"))
+        else:
+            self.cookies = pickle.load(open(
+                f'D:\\Computer Science\\Python3\\Crawler\\file\\jaccount-{account}.pkl', 'rb'))
 
     def get_basic_info(self):
         # 先获取xkkz_Id,也就是课程类别id
@@ -265,10 +329,14 @@ class Course:
                 self.data['do_jxb_id'] = item['do_jxb_id']
                 break
 
-    def choose_certain_class(self):
-        if self.data['yxzrs'] < self.data['jxbrl']:
+    def isremain(self):
+        if self.data['yxzrs'] == self.data['jxbrl']:
             print('此教学班目前人数已满,为您持续刷新')
             return False
+        else:
+            return True
+
+    def choose_certain_class(self):
         headers = {
             'Accept': 'application/json, text/javascript, */*; q=0.01',
             'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
@@ -341,7 +409,7 @@ class Course:
             'njdm_id': '2022',
             'zyh_id': self.data['zyh_id'],
             # 似乎没用
-            'kklxdm': '06',
+            'kklxdm': '',
             'xklc': '5',
             'xkxnm': '2023',
             'xkxqm': '3',
@@ -386,8 +454,8 @@ class Course:
             'xkxqm': '3',
             'txbsfrl': '1',
         }
-        # 退没选的课也会显示成功
-        response = requests.post(
+        # 退没选的课也会显示成功,未解决
+        requests.post(
             'https://i.sjtu.edu.cn/xsxk/zzxkyzb_tuikBcZzxkYzb.html',
             params=self.params,
             cookies=self.cookies,
@@ -398,9 +466,26 @@ class Course:
 
 
 if __name__ == "__main__":
-    course = Course('通识课', '(2023-2024-1)-MU904-02')
     # 有括号记得加转义字符
-    course.get_basic_info()
-    course.get_course_info()
-    course.choose_certain_class()
-    course.giveup_certain_class()
+    giveupcourse = Course('通识课', '(2023-2024-1)-ART1005-01')
+    course = Course('通识课', '(2023-2024-1)-MU904-02')
+    # 直接抢选
+    if mode == 'Robonly':
+        course.get_course_info()
+        # 没有名额获得抢课因为其他原因失败
+        while not (course.isremain() and course.choose_certain_class()):
+            time.sleep(interval)
+            course.get_course_info()
+    # 课程冲突保留选课
+    elif mode == 'Quitandrob':
+        course.get_course_info()
+        while not course.isremain():
+            time.sleep(interval)
+            course.get_course_info()
+        # 有很小概率退课后没抢到，待开发
+        giveupcourse.get_course_info()
+        giveupcourse.giveup_certain_class()
+        course.choose_certain_class()
+    elif mode == 'Quitonly':
+        giveupcourse.get_course_info()
+        giveupcourse.giveup_certain_class()
