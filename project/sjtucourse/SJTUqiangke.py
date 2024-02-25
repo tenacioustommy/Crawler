@@ -9,16 +9,24 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from multiprocessing import Process
+from multiprocessing import process
+
 # 目前只能用于选一个指定教学班，模式有1：直接抢，2：退同类型抢课
 # 刷新间隔
-interval = 5
+interval = 3
 account = 'tommyhuang'
-pwd = 'hzh475601'
+pwd = 'hzh475601!'
 login_url = 'https://i.sjtu.edu.cn/xtgl/login_slogin.html'
-# 'Robonly' 'Quitandrob'
-mode = 'Quitandrob'
-
+ROBONLY=0
+QUITANDROB=1
+QUITONLY=2
+mode = ROBONLY
+kklxdm = {
+    "通识课": "10",
+    "任选课程": "30",
+    "主修课程": "01",
+    "公共选修课":"11" ,  
+}
 
 class Course:
     # 提供选课的类别，eg：板块课(体育（3）)
@@ -196,7 +204,7 @@ class Course:
         }
         # 有讲究的，需要进一步检查
         data = {
-            'filter_list[0]': self.course_str,
+            'filter_list[0]': self.jxb_name,
             'rwlx': self.data['rwlx'],
             'xkly': '0',
             'bklx_id': self.data['bklx_id'],
@@ -216,11 +224,12 @@ class Course:
             'xz': '4',
             'ccdm': 'w',
             'xsbj': '65536',
-            'sfkknj': '0',
-            'sfkkzy': '0',
+            'sfkknj': '1',
+            'gnjkxdnj': '0',
+            'sfkkzy': '1',
             'kzybkxy': '0',
-            'sfznkx': '0',
-            'zdkxms': '0',
+            'sfznkx': '1',
+            'zdkxms': '99',
             'sfkxq': '1',
             'sfkcfx': '0',
             'kkbk': self.data['kkbk'],
@@ -229,9 +238,10 @@ class Course:
             'sfrxtgkcxd': '1',
             'tykczgxdcs': self.data['tykczgxdcs'],
             'xkxnm': '2023',
-            'xkxqm': '3',
-            # 06 10 30来回变
-            'kklxdm': '30',
+            # 也来回变
+            'xkxqm': '12',
+            # 01 06 10 30来回变
+            'kklxdm': kklxdm[self.catagory],
             'bbhzxjxb': '0',
             'rlkz': '0',
             'xkzgbj': '0',
@@ -247,6 +257,7 @@ class Course:
             data=data,
         )
         tmplist = response.json()['tmpList']
+        assert(len(tmplist) != 0)
         for item in tmplist:
             if item['jxbmc'] == self.jxb_name:
                 self.data['kch_id'] = item['kch_id']
@@ -276,7 +287,7 @@ class Course:
             'sec-ch-ua-platform': '"Windows"',
         }
         data = {
-            'filter_list[0]': self.course_str,
+            'filter_list[0]': self.jxb_name,
             'rwlx': self.data['rwlx'],
             'xkly': '0',
             'bklx_id': self.data['bklx_id'],
@@ -304,10 +315,11 @@ class Course:
             'kkbk': self.data['kkbk'],
             'kkbkdj': self.data['kkbkdj'],
             'xkxnm': '2023',
-            'xkxqm': '3',
+            # 一直变的两个
+            'xkxqm': '12',
+            'kklxdm': kklxdm[self.catagory],
             'xkxskcgskg': self.data['xkxskcgskg'],
             'rlkz': '0',
-            'kklxdm': '30',
             'kch_id': self.data['kch_id'],
             'jxbzcxskg': '0',
             'xkkz_id': self.data['xkkz_id'],
@@ -323,6 +335,7 @@ class Course:
             data=data,
         )
         list = response.json()
+        assert(len(list) ==1)
         for item in list:
             if item['jxb_id'] == self.data['jxb_id']:
                 # 教学班总人数
@@ -365,7 +378,7 @@ class Course:
             'kch_id': self.data['kch_id'],
             'njdm_id': '2022',
             'zyh_id': self.data['zyh_id'],
-            'kklxdm': '06',
+            'kklxdm': kklxdm[self.catagory],
         }
         # 这个请求不知道干啥的
         requests.post(
@@ -410,10 +423,10 @@ class Course:
             'njdm_id': '2022',
             'zyh_id': self.data['zyh_id'],
             # 似乎没用
-            'kklxdm': '',
+            'kklxdm': kklxdm[self.catagory],
             'xklc': '5',
             'xkxnm': '2023',
-            'xkxqm': '3',
+            'xkxqm': '12',
         }
         response = requests.post(
             'https://i.sjtu.edu.cn/xsxk/zzxkyzbjk_xkBcZyZzxkYzb.html',
@@ -424,7 +437,11 @@ class Course:
         )
         if response.json()['flag'] != '1':
             print(response.json()['msg']+'选课失败')
-            return False
+            # 搜索到的课程人数未满但是选的时候又满了
+            if response.json()['msg'] == '对不起，该教学班已无余量，不可选！':
+                return False
+            else:
+                return True
         else:
             print(self.jxb_name+'选课成功')
             return True
@@ -452,7 +469,7 @@ class Course:
             'kch_id': self.data['kch_id'],
             'jxb_ids': self.data['do_jxb_id'],
             'xkxnm': '2023',
-            'xkxqm': '3',
+            'xkxqm': '12',
             'txbsfrl': '1',
         }
         # 退没选的课也会显示成功,未解决
@@ -464,21 +481,22 @@ class Course:
             data=data,
         )
         print(self.jxb_name+'退课成功')
-
+        
+# 有括号记得加转义字符
+course = Course('任选课程', '(2023-2024-2)-IAGR2304-01')
+giveupcourse = Course('任选课程', '(2023-2024-2)-PHY1253-11')
 
 if __name__ == "__main__":
-    # 有括号记得加转义字符
-    course = Course('任选课程', '(2023-2024-1)-PHY1252-14')
-    giveupcourse = Course('任选课程', '(2023-2024-1)-PHY1252-13')
+    
     # 直接抢选
-    if mode == 'Robonly':
+    if mode == ROBONLY:
         course.get_course_info()
         # 没有名额获得抢课因为其他原因失败
-        while not (course.isremain() and course.choose_certain_class()):
+        while not course.isremain() or not course.choose_certain_class():
             time.sleep(interval)
             course.get_course_info()
     # 课程冲突保留选课
-    elif mode == 'Quitandrob':
+    elif mode == QUITANDROB:
         course.get_course_info()
         while not course.isremain():
             time.sleep(interval)
@@ -487,6 +505,6 @@ if __name__ == "__main__":
         giveupcourse.get_course_info()
         giveupcourse.giveup_certain_class()
         course.choose_certain_class()
-    elif mode == 'Quitonly':
+    elif mode == QUITONLY:
         course.get_course_info()
         course.giveup_certain_class()
