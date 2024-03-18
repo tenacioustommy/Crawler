@@ -6,7 +6,10 @@ from datetime import date,datetime,timedelta
 
 # time从几点开始填几点，例如8点到9点，填8,24小时制
 class config:
-    def __init__(self,name,date,time):
+    def __init__(self,venue,name,date,time):
+        self.fieldtype=0
+        self.venueid=0
+        self.venue=venue
         self.name=name
         self.date=date.strftime("%Y-%m-%d")
         self.week=date.weekday()+1
@@ -37,15 +40,45 @@ class gym:
             'NSC_tqpsut.tkuv.fev.do': 'ffffffff097f1cec45525d5f4f58455e445a4a4229a0',
             'JSESSIONID': '33f578d4-1d44-43c3-b9da-6971f7207fad',
         }
-        self.venueid='768214ba-3b1c-4f29-ad00-15c0e376b000'
-        self.fieldtype=0
         self.config=config
           
     def login(self):
         pass
-    
+    def get_venue_id(self):
+        headers = {
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
+            'Connection': 'keep-alive',
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Origin': 'https://sports.sjtu.edu.cn',
+            'Referer': 'https://sports.sjtu.edu.cn/pc/',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'sec-ch-ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+        }
+
+        data = {
+            'pageSize': '8',
+            'pageNum': '1',
+            'venueName': '',
+            'flag': '0',
+        }
+
+        response = requests.post('https://sports.sjtu.edu.cn/manage/venue/list', cookies=self.cookies, headers=headers, data=data)
+        if response.json()["code"] == 0:
+            for item in response.json()["rows"]:
+                if item["venueName"]==self.config.venue:
+                    self.config.venueid=item["venueId"]
+                    return True
+            print("请检查输入的场馆是否正确")
+        return False
     # 获取某场馆的id信息,一次运行一次就行
     def getinfo(self):
+        self.get_venue_id()
         headers = {
             'Accept': 'application/json, text/plain, */*',
             'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
@@ -63,15 +96,15 @@ class gym:
         }
         # 场馆id
         data = {
-            'id': self.venueid,
+            'id': self.config.venueid,
         }
         response = requests.post('https://sports.sjtu.edu.cn/manage/venue/queryVenueById', cookies=self.cookies, headers=headers, data=data)
         if response.json()["code"] == 0:
             for item in response.json()["data"]["motionTypes"]:
                 if item["name"]==self.config.name:
-                    self.fieldtype=item["id"]
+                    self.config.fieldtype=item["id"]
                     return True
-            if(self.fieldtype==0):
+            if(self.config.fieldtype==0):
                 print("请检查输入的名字是否正确")
                 return False
         else:
@@ -98,9 +131,9 @@ class gym:
         }
 
         json_data = {
-            'fieldType': self.fieldtype,
+            'fieldType': self.config.fieldtype,
             'date': self.config.date,
-            'venueId': self.venueid,
+            'venueId': self.config.venueid,
         }
 
         response = requests.post(
@@ -192,7 +225,7 @@ class gym:
             print("预约失败")
         
 if __name__ == "__main__":
-    conf1=config("烘焙",date(2024,3,22),13)
+    conf1=config("子衿街学生活动中心","烘焙",date(2024,3,22),14)
     g = gym(conf1)
     assert(g.getinfo()!=False)
     info=g.get_certain_info()
@@ -215,7 +248,7 @@ if __name__ == "__main__":
                 # TODO先默认7点第一场
                 if item["priceList"][conf1.time-7]["status"]=='0' and item["priceList"][conf1.time-7]["count"]>0:
                     conf1.price=item["priceList"][conf1.time-7]["price"]
-                    g.order(g.fieldtype,g.venueid,conf1.name,conf1.date,conf1.week,conf1.price,conf1.schedule,conf1.fieldname,conf1.fieldid,conf1.tensity,conf1.tenSity)
+                    g.order(conf1.fieldtype,conf1.venueid,conf1.name,conf1.date,conf1.week,conf1.price,conf1.schedule,conf1.fieldname,conf1.fieldid,conf1.tensity,conf1.tenSity)
                     break
                 else:
                     pass
