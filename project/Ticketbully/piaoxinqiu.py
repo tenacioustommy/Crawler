@@ -1,6 +1,6 @@
 # 先通过selenium登录获得cookie和token,注意之后就不要在重新登陆了,否则token失效
 # 此程序目前只适用于无选座，无快递模式
-from piaoxinqiuconfig import User, Show
+from project.Ticketbully.piaoxinqiuconfig import User, Show
 import requests
 import time
 import datetime

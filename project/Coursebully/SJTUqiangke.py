@@ -20,7 +20,7 @@ login_url = 'https://i.sjtu.edu.cn/xtgl/login_slogin.html'
 ROBONLY=0
 QUITANDROB=1
 QUITONLY=2
-mode = ROBONLY
+mode = QUITANDROB
 kklxdm = {
     "通识课": "10",
     "任选课程": "30",
@@ -411,7 +411,6 @@ class Course:
             'jxb_ids': self.data['do_jxb_id'],
             'kch_id': self.data['kch_id'],
             'kcmc': self.course_str,
-            # 'kcmc': (PE003C30)龙舟 - 1.0 学分,
             'rwlx': self.data['rwlx'],
             'rlkz': '0',
             'rlzlkz': '1',
@@ -483,11 +482,10 @@ class Course:
         print(self.jxb_name+'退课成功')
         
 # 有括号记得加转义字符
-course = Course('任选课程', '(2023-2024-2)-IAGR2304-01')
-giveupcourse = Course('任选课程', '(2023-2024-2)-PHY1253-11')
+course = Course('任选课程', '(2023-2024-2)-PHY1253-11')
+giveupcourse = Course('任选课程', '(2023-2024-2)-PHY1253-12')
 
 if __name__ == "__main__":
-    
     # 直接抢选
     if mode == ROBONLY:
         course.get_course_info()
@@ -501,10 +499,14 @@ if __name__ == "__main__":
         while not course.isremain():
             time.sleep(interval)
             course.get_course_info()
-        # 有很小概率退课后没抢到，待开发
         giveupcourse.get_course_info()
         giveupcourse.giveup_certain_class()
-        course.choose_certain_class()
+        # 有很小概率退课后没抢到，赶紧抢回原本课程
+        if not course.choose_certain_class():
+            while not giveupcourse.isremain() or not giveupcourse.choose_certain_class():
+                time.sleep(interval)
+                giveupcourse.get_course_info()
+            
     elif mode == QUITONLY:
         course.get_course_info()
         course.giveup_certain_class()
