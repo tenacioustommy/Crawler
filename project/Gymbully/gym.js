@@ -153,22 +153,20 @@ AES = {
 function getKey(e) {
   return "JWVAXPDCZTZPYUCX";
 }
-function getres() {
+function getres(venTypeId, venueId, fieldType, scheduleDate, week, venueprice, scheduleTime, subSitename, subSiteId, tensity, tenSity) {
   var a = new Date().getTime();
   var sid = Rsa.encrypt(getKey());
   var tim = Rsa.encrypt(a + "");
   var payload = AES.encrypt(
     JSON.stringify({
-      venTypeId: "019335a6-9d67-4d7d-923e-92ecea740c7b",
-      venueId: "768214ba-3b1c-4f29-ad00-15c0e376b000",
-      fieldType: "舞蹈",
+      venTypeId: venTypeId,
+      venueId: venueId,
+      fieldType: fieldType,
       returnUrl: "https://sports.sjtu.edu.cn/#/paymentResult/1",
-      scheduleDate: "2024-03-19",
-      week: "2",
-      spaces: [
-        { count: 1, venuePrice: "10", status: 1, scheduleTime: "13:00-14:00", subSitename: "场地1", subSiteId: "4070a7ad-5745-4927-b1c7-4b0d63627ca0", tensity: "1", venueNum: 1 },
-      ],
-      tenSity: "紧张",
+      scheduleDate: scheduleDate,
+      week: week,
+      spaces: [{ count: 1, venuePrice: venueprice, status: 1, scheduleTime: scheduleTime, subSitename: subSitename, subSiteId: subSiteId, tensity: tensity, venueNum: 1 }],
+      tenSity: tenSity,
     }),
     getKey()
   );
