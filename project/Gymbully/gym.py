@@ -1,19 +1,41 @@
 import requests
+import execjs
+import os
 class gym:
     def __init__(self, username=0, password=0):
         self.username = username
         self.password = password
-        self.cookies  = {
-        '_ga': 'GA1.3.1315508667.1697032069',
-        '_gid': 'GA1.3.1996120587.1710685337',
-        '_ga_QP6YR9D8CK': 'GS1.3.1710730533.15.0.1710730533.0.0.0',
-        'NSC_tqpsut.tkuv.fev.do': 'ffffffff097f1ced45525d5f4f58455e445a4a4229a0',
-        'JSESSIONID': 'ed5aa51a-1d56-41e5-9351-9638a26574dd',
-    }
-        
+        # 获取当前Python文件的目录
+        self.current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        self.cookies = {
+            '_ga': 'GA1.3.1315508667.1697032069',
+            '_gid': 'GA1.3.1996120587.1710685337',
+            '_ga_QP6YR9D8CK': 'GS1.3.1710730533.15.0.1710730533.0.0.0',
+            'NSC_tqpsut.tkuv.fev.do': 'ffffffff097f1cec45525d5f4f58455e445a4a4229a0',
+            'JSESSIONID': '33f578d4-1d44-43c3-b9da-6971f7207fad',
+        }
+          
     def login(self):
         pass
+    def getinfo(self):
+        pass
     def getOrderid(self):
+        # 加载依赖的JavaScript文件
+        with open(os.path.join(self.current_dir,"manifest.js"), "r",encoding="utf-8") as f:
+            dependency_js_code = f.read()
+        f.close()
+        # 加载主JavaScript文件
+        with open(os.path.join(self.current_dir,"gym.js")) as f:
+            main_js_code = f.read()
+        f.close()
+        # 创建一个JavaScript运行环境，并加载JavaScript代码
+        js_code = execjs.compile(dependency_js_code + "\n" + main_js_code)
+
+        # 调用JavaScript函数，并传递参数
+        
+        res=js_code.call("getres")
+        
         headers = {
             'Accept': 'application/json, text/plain, */*',
             'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
@@ -29,31 +51,54 @@ class gym:
             'sec-ch-ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"Windows"',
-            'sid': 'IQuABDNM/i5xmZ9Lf9z7Kn54UflIz1RjeqVQ6ZXVGGUSmsoyFpdMRuXuYOXvnp82c5Kv+k+1F+caFCxsHCtVaR4v6jixLR1vsJN7YIaXaXq2s7ccVO82rb7gjMpK5fgGkJPU1CESDaFLPEGMnjXQugx/t8WQkDNnPJSIPJQjfwHsnT2lN/bmobRmyaWN6JOBuhCA42D4vasoUtjyoUOxNn6rMivLiQD8h8Qz4YiKZGMh/zTXDKYVXzmW0FELMLOPPBNVa9fYAJgPcM6E75IhybQunrYc3CMPC18WP92bT962mat+No8UOdejk+GopoyRL706ax+NKqLJH9hFoyjEvw==',
-            'tim': 'DTdeEvOjGcJDNx0zXtoOyOM/c/ASD2vo/MsUNYNA69y/E87UZP+p88CDpQGFPQYjoQxOeOzApMxid2qZQdAkn9gfecbhMojWDo+DKcs+MDY3sfpzEHaHY4+nFMulPPakBpWRCh+rvaKGgTuDX8BIs7bY7jW/v/m3V+8qwfMfhv1eazkKwvO6ncxHRM/q1eh+KZ0u0sVZLvECLUDJ4/s6BTz/hfNbFa5qlDf7H9h8Ilx5u/nBliRUUjRp6K8FVtTDK6KcFcd79KbxA2o0D1oJcbYX1JjMrgiC4dbnWXRmI7s5vS5OzJuEvXkT46E4zOjwiXRSklZpVsMI2OCEgLYtnQ==',
+            'sid': res["sid"],
+            'tim': res["tim"],
+            }
+        data=res['payload']
+        response = requests.post('https://sports.sjtu.edu.cn/venue/personal/ConfirmOrder', cookies=self.cookies, headers=headers, data=data)
+        print(response.text)
+        if response.json()["code"] == 0:
+            return response.json()["data"]
+        else:
+            return -1
+        
+        
+    def confirmOrder(self,orderid):
+        headers = {
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
+            'Connection': 'keep-alive',
+            # 'Cookie': '_ga=GA1.3.1315508667.1697032069; _gid=GA1.3.1996120587.1710685337; _ga_QP6YR9D8CK=GS1.3.1710730533.15.0.1710730533.0.0.0; NSC_tqpsut.tkuv.fev.do=ffffffff097f1ced45525d5f4f58455e445a4a4229a0; JSESSIONID=ed5aa51a-1d56-41e5-9351-9638a26574dd',
+            'Referer': 'https://sports.sjtu.edu.cn/pc/',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'sec-ch-ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
         }
 
-        data = 'Bfo1gSBpwR8E42jfOU1dk0Eog+F6xG+tKIEeWPewctau3a0Z4pHgdgwcjAHfUYwHVqZtTqqAGTmJclr6fWYU2QcVtc3vjXrvI2ZgRirjj2UD4kkrQH0dwuDuYwtUG4S8lG2L0Td6097K3o10clcCdvqNTiet876tVi84tobpW+1fng4qByb5XAFjiMXNDVuDULMdQhtPSSkqn70WtwMKjyH421RILOyDtdUrd0LugndPAF3GfURN94A6UNXC0ml2u3F+hh7X1iYb2t7wSrcdo/wVAtvqYtQfeRI5Kvn2mNiBHMCmIl9SvT3mEP+sj0Srf1ZWbgBdSPX4lucuhTLmFhb7q8yECEkQmSUAED50GunJVh4Cz2j231R41nVmj8/opiZ2SNSHvizcd+XILXvBHZ0zFa29oAzVIjmZzuWIk0ho0MC4jigRSYn2NYYn0fw/CY72kh3EqEhYEF2XKMMYuWslpGin35rBMZ8O1VHNU4OQC8hbiQAil4RIvbE4Maq95rMCPtJtty9jsgv8QBoP9XdVWdzjWZT27dsj3eMG8xniYd00JLT0z9hhz/l/NdwD'
+        params = {
+            'orderId': orderid,
+        }
 
-        response = requests.post('https://sports.sjtu.edu.cn/venue/personal/ConfirmOrder', cookies=self.cookies, headers=headers, data=data)
-
-headers = {
-    'Accept': 'application/json, text/plain, */*',
-    'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7',
-    'Connection': 'keep-alive',
-    # 'Cookie': '_ga=GA1.3.1315508667.1697032069; _gid=GA1.3.1996120587.1710685337; _ga_QP6YR9D8CK=GS1.3.1710730533.15.0.1710730533.0.0.0; NSC_tqpsut.tkuv.fev.do=ffffffff097f1ced45525d5f4f58455e445a4a4229a0; JSESSIONID=ed5aa51a-1d56-41e5-9351-9638a26574dd',
-    'Referer': 'https://sports.sjtu.edu.cn/pc/',
-    'Sec-Fetch-Dest': 'empty',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Site': 'same-origin',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    'sec-ch-ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-}
-
-params = {
-    'orderId': '755490559430496256',
-}
-
-response = requests.get('https://sports.sjtu.edu.cn/venue/personal/queryOrder', params=params, cookies=cookies, headers=headers)
+        response = requests.get('https://sports.sjtu.edu.cn/venue/personal/queryOrder', params=params, cookies=self.cookies, headers=headers)
+        print(response.text)
+        if response.json()["code"] == 0:
+            return True
+        else:
+            return False
+        
+if __name__ == "__main__":
+    g = gym()
+    orderid= g.getOrderid()
+    if(orderid!=-1):
+        if g.confirmOrder(orderid):
+            print("预约成功")
+        else:    
+            print("预约失败")
+    else:
+        print("预约失败")
+            
+        

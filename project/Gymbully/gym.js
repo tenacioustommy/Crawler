@@ -1,50 +1,97 @@
-function getKey(e) {
-  //   var t = [
-  //     "0",
-  //     "1",
-  //     "2",
-  //     "3",
-  //     "4",
-  //     "5",
-  //     "6",
-  //     "7",
-  //     "8",
-  //     "9",
-  //     "A",
-  //     "B",
-  //     "C",
-  //     "D",
-  //     "E",
-  //     "F",
-  //     "G",
-  //     "H",
-  //     "I",
-  //     "J",
-  //     "K",
-  //     "L",
-  //     "M",
-  //     "N",
-  //     "O",
-  //     "P",
-  //     "Q",
-  //     "R",
-  //     "S",
-  //     "T",
-  //     "U",
-  //     "V",
-  //     "W",
-  //     "X",
-  //     "Y",
-  //     "Z",
-  //   ];
-  //   null == e && (e = 16);
-  //   for (var i = "", a = 0; a < e; a++) {
-  //     i += t[Math.ceil(35 * Math.random())];
-  //   }
-  //   return i;
-  return "F3364HK2UC6B5HKY";
-}
+// python运行需要注释上
+// var loader = require("./manifest");
+window = global;
 
+var E = loader("LJm1"),
+  x = loader.n(E);
+var it = (function () {
+  function t(t) {
+    (t = t || {}),
+      (this.default_key_size = parseInt(t.default_key_size, 10) || 1024),
+      (this.default_public_exponent = t.default_public_exponent || "010001"),
+      (this.log = t.log || !1),
+      (this.key = null);
+  }
+  return (
+    (t.prototype.setKey = function (t) {
+      this.log && this.key && console.warn("A key was already set, overriding existing."), (this.key = new nt(t));
+    }),
+    (t.prototype.setPrivateKey = function (t) {
+      this.setKey(t);
+    }),
+    (t.prototype.setPublicKey = function (t) {
+      this.setKey(t);
+    }),
+    (t.prototype.decrypt = function (t) {
+      try {
+        return this.getKey().decrypt(d(t));
+      } catch (t) {
+        return !1;
+      }
+    }),
+    (t.prototype.encrypt = function (t) {
+      try {
+        return h(this.getKey().encrypt(t));
+      } catch (t) {
+        return !1;
+      }
+    }),
+    (t.prototype.encryptLong = function (t) {
+      try {
+        for (
+          var e = this.getKey().encryptLong(t) || "", n = this.getKey().decryptLong(e) || "", i = 0, r = /null$/g;
+          r.test(n) && (i++, (e = this.getKey().encryptLong(t) || ""), (n = this.getKey().decryptLong(e) || ""), !(i > 10));
+
+        );
+        return e;
+      } catch (t) {
+        return !1;
+      }
+    }),
+    (t.prototype.decryptLong = function (t) {
+      try {
+        return this.getKey().decryptLong(t);
+      } catch (t) {
+        return !1;
+      }
+    }),
+    (t.prototype.sign = function (t, e, n) {
+      try {
+        return h(this.getKey().sign(t, e, n));
+      } catch (t) {
+        return !1;
+      }
+    }),
+    (t.prototype.verify = function (t, e, n) {
+      try {
+        return this.getKey().verify(t, d(e), n);
+      } catch (t) {
+        return !1;
+      }
+    }),
+    (t.prototype.getKey = function (t) {
+      if (!this.key) {
+        if (((this.key = new nt()), t && "[object Function]" === {}.toString.call(t))) return void this.key.generateAsync(this.default_key_size, this.default_public_exponent, t);
+        this.key.generate(this.default_key_size, this.default_public_exponent);
+      }
+      return this.key;
+    }),
+    (t.prototype.getPrivateKey = function () {
+      return this.getKey().getPrivateKey();
+    }),
+    (t.prototype.getPrivateKeyB64 = function () {
+      return this.getKey().getPrivateBaseKeyB64();
+    }),
+    (t.prototype.getPublicKey = function () {
+      return this.getKey().getPublicKey();
+    }),
+    (t.prototype.getPublicKeyB64 = function () {
+      return this.getKey().getPublicBaseKeyB64();
+    }),
+    (t.version = "3.1.4"),
+    t
+  );
+})();
 Rsa = {
   rsaPublicData: function (e) {
     var t = new C.a();
@@ -73,3 +120,61 @@ Rsa = {
     );
   },
 };
+z = loader("Av7u");
+U = loader.n(z);
+
+AES = {
+  generatekey: function (e) {
+    for (var t = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", i = "", n = 0; n < e; n++) {
+      var o = Math.floor(Math.random() * t.length);
+      i += t.substring(o, o + 1);
+    }
+    return i;
+  },
+  encrypt: function (e, t) {
+    t = t || "abcdsxyzhkj12345";
+    var i = U.a.enc.Utf8.parse(t),
+      n = U.a.enc.Utf8.parse(e);
+    return U.a.AES.encrypt(n, i, {
+      mode: U.a.mode.ECB,
+      padding: U.a.pad.Pkcs7,
+    }).toString();
+  },
+  decrypt: function (e, t) {
+    t = t || "abcdsxyzhkj12345";
+    var i = U.a.enc.Utf8.parse(t),
+      n = U.a.AES.decrypt(e, i, {
+        mode: U.a.mode.ECB,
+        padding: U.a.pad.Pkcs7,
+      });
+    return U.a.enc.Utf8.stringify(n).toString();
+  },
+};
+function getKey(e) {
+  return "JWVAXPDCZTZPYUCX";
+}
+function getres() {
+  var a = new Date().getTime();
+  var sid = Rsa.encrypt(getKey());
+  var tim = Rsa.encrypt(a + "");
+  var payload = AES.encrypt(
+    JSON.stringify({
+      venTypeId: "019335a6-9d67-4d7d-923e-92ecea740c7b",
+      venueId: "768214ba-3b1c-4f29-ad00-15c0e376b000",
+      fieldType: "舞蹈",
+      returnUrl: "https://sports.sjtu.edu.cn/#/paymentResult/1",
+      scheduleDate: "2024-03-19",
+      week: "2",
+      spaces: [
+        { count: 1, venuePrice: "10", status: 1, scheduleTime: "13:00-14:00", subSitename: "场地1", subSiteId: "4070a7ad-5745-4927-b1c7-4b0d63627ca0", tensity: "1", venueNum: 1 },
+      ],
+      tenSity: "紧张",
+    }),
+    getKey()
+  );
+  return {
+    sid: sid,
+    tim: tim,
+    payload: payload,
+  };
+}
